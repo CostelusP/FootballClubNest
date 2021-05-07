@@ -5,6 +5,6 @@ require('dotenv').config();
 export const config = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  connectString: 'localhost:1521/BdProject',
+  connectString: 'localhost:1521/orcl',
   privilege: oracledb.SYSDBA,
 };

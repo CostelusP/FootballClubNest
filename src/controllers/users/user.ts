@@ -1,5 +1,15 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { UserService } from 'src/services/users/user.service';
+import { LoginUserDto } from 'src/services/users/userDto';
 
 @Controller('users')
 export class UserController {
@@ -13,8 +23,33 @@ export class UserController {
     return await this.userService.findOne('aaa');
   }
 
+  @HttpCode(200)
   @Post('createUser')
-  async createUser(@Body() data): Promise<string> {
+  async createUser(@Body() data): Promise<any> {
     return this.userService.create(data);
+  }
+
+  @Post('login')
+  @HttpCode(200)
+  async login(@Body() loginUserDto: LoginUserDto): Promise<any> {
+    return await this.userService.login(loginUserDto);
+  }
+
+  @Get('coaches')
+  async getCoaches(@Query() data): Promise<string> {
+    const { page, limit, search } = data;
+    return await this.userService.getCoaches(page, limit, search);
+  }
+  @Delete('coach')
+  async deleteCoach(@Query() data): Promise<any> {
+    const { id } = data;
+    return await this.userService.delete(id);
+  }
+
+  @HttpCode(200)
+  @Put('editUser')
+  async updateUser(@Body() data, @Query() userId): Promise<any> {
+    const { id } = userId;
+    return this.userService.update(data, id);
   }
 }

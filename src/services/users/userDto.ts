@@ -7,7 +7,7 @@ export class UserDto {
 }
 
 export class LoginUserDto {
-  @IsNotEmpty() readonly user_name: string;
+  @IsNotEmpty() readonly email_address: string;
   @IsNotEmpty() readonly password: string;
 }
 
