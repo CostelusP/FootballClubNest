@@ -57,10 +57,11 @@ export async function find(
   const connection = await checkConnection();
   const is_admin = 'F';
   let getUser;
+  const newSearch = `%${search}%`;
   if (search !== '') {
     getUser = await connection.execute(
-      'SELECT user_name, is_admin,id, email_address FROM userclub WHERE CONTAINS(user_name, :search,1) >0 AND is_admin= :is_admin',
-      { is_admin, search },
+      'SELECT user_name, is_admin, id, email_address FROM userclub WHERE user_name LIKE :newSearch AND is_admin= :is_admin',
+      { newSearch, is_admin },
     );
   } else {
     getUser = await connection.execute(
@@ -143,6 +144,6 @@ export async function update(user: any, id: string): Promise<string> {
       options,
     );
   }
-
+  connection.close();
   return updatedUser;
 }

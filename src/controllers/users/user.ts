@@ -23,8 +23,8 @@ export class UserController {
     return await this.userService.findOne('aaa');
   }
 
-  @HttpCode(200)
   @Post('createUser')
+  @HttpCode(200)
   async createUser(@Body() data): Promise<any> {
     return this.userService.create(data);
   }
@@ -36,18 +36,20 @@ export class UserController {
   }
 
   @Get('coaches')
+  @HttpCode(200)
   async getCoaches(@Query() data): Promise<string> {
     const { page, limit, search } = data;
     return await this.userService.getCoaches(page, limit, search);
   }
   @Delete('coach')
+  @HttpCode(200)
   async deleteCoach(@Query() data): Promise<any> {
     const { id } = data;
     return await this.userService.delete(id);
   }
 
-  @HttpCode(200)
   @Put('editUser')
+  @HttpCode(200)
   async updateUser(@Body() data, @Query() userId): Promise<any> {
     const { id } = userId;
     return this.userService.update(data, id);
