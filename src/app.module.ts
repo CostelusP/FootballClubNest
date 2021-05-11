@@ -7,10 +7,17 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { PlayerController } from './controllers/player/player';
 import { PlayerService } from './services/players/player.service';
+import { CLubController } from './controllers/clubs/club';
+import { ClubService } from './services/clubs/club.service';
 
 @Module({
   imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true })],
-  controllers: [AppController, UserController, PlayerController],
-  providers: [AppService, UserService, PlayerService],
+  controllers: [
+    AppController,
+    UserController,
+    PlayerController,
+    CLubController,
+  ],
+  providers: [AppService, UserService, PlayerService, ClubService],
 })
 export class AppModule {}

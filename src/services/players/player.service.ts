@@ -59,12 +59,12 @@ export class PlayerService {
       );
     }
 
-    return { message: 'User Created' };
+    return { message: 'Player Created' };
   }
 
   async update(playerData: PlayerEntity, id: string): Promise<any> {
-    const userUpdated = await update(playerData, id);
-    if (userUpdated === undefined || !userUpdated) {
+    const playerUpdated = await update(playerData, id);
+    if (playerUpdated === undefined || !playerUpdated) {
       throw new HttpException(
         'Updation failed',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -75,7 +75,7 @@ export class PlayerService {
   }
 
   async delete(id: string): Promise<any> {
-    if (!id) return { message: 'Invalid user id' };
+    if (!id) return { message: 'Invalid player id' };
     const playerDeleted = await remove(id);
     if (playerDeleted === undefined || !playerDeleted) {
       throw new HttpException(
