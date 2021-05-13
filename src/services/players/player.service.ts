@@ -16,9 +16,21 @@ export class PlayerService {
     return getPlayer;
   }
 
-  async getPlayers(page: number, limit: number, search: string): Promise<any> {
+  async getPlayers(
+    page: number,
+    limit: number,
+    search: string,
+    id,
+    isFrom,
+  ): Promise<any> {
     const offset = (page - 1) * limit;
-    const { players, page_number } = await find(offset, limit, search);
+    const { players, page_number } = await find(
+      offset,
+      limit,
+      search,
+      id,
+      isFrom,
+    );
     if (players && 'message' in players) {
       throw new HttpException(players.message, HttpStatus.BAD_REQUEST);
     }

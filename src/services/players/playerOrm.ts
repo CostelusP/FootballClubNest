@@ -24,18 +24,34 @@ export async function find(
   offset: number,
   limit: number,
   search: string,
+  id,
+  isFrom,
 ): Promise<any> {
   const connection = await checkConnection();
   let getPlayers;
 
   const newSearch = `%${search}%`;
-  if (search !== 'default') {
-    getPlayers = await connection.execute(
-      'SELECT * FROM player WHERE full_name LIKE :newSearch',
-      { newSearch },
-    );
+  if (id && isFrom && isFrom === 'Club') {
+    if (search !== 'default') {
+      getPlayers = await connection.execute(
+        'SELECT * FROM player WHERE full_name LIKE :newSearch AND CLUB_ID= :id',
+        { newSearch, id },
+      );
+    } else {
+      getPlayers = await connection.execute(
+        'SELECT * FROM player WHERE CLUB_ID= :id',
+        { id },
+      );
+    }
   } else {
-    getPlayers = await connection.execute('SELECT * FROM player');
+    if (search !== 'default') {
+      getPlayers = await connection.execute(
+        'SELECT * FROM player WHERE full_name LIKE :newSearch',
+        { newSearch },
+      );
+    } else {
+      getPlayers = await connection.execute('SELECT * FROM player');
+    }
   }
   if (!getPlayers) return { message: 'Players not found' };
   const returnedPlayers = [];
@@ -73,8 +89,10 @@ export async function create(player: PlayerEntity): Promise<any> {
     weight,
     height,
     age,
+    club_id,
   } = player;
-  const sql = `Insert INTO PLAYER(id, full_name, rating, salary, position, date_of_birth, weight, height, age) VALUES( :id, :full_name, :rating, :salary, :position, TO_DATE( :date_of_birth,'YYYY-MM-DD'), :weight, :height, :age)`;
+  const sql = `Insert INTO PLAYER(id, full_name, rating, salary, position, date_of_birth, weight, height, age,club_id) 
+  VALUES( :id, :full_name, :rating, :salary, :position, TO_DATE( :date_of_birth,'YYYY-MM-DD'), :weight, :height, :age, :club_id)`;
   const id = uuidv4();
 
   const data = {
@@ -87,6 +105,7 @@ export async function create(player: PlayerEntity): Promise<any> {
     weight,
     height,
     age,
+    club_id,
   };
 
   const options = {
@@ -117,10 +136,11 @@ export async function update(player: PlayerEntity, id: string): Promise<any> {
     weight,
     height,
     age,
+    club_id,
   } = player;
 
   const sql = `UPDATE PLAYER SET full_name= :full_name, rating= :rating, salary= :salary, position= :position,
-   date_of_birth= TO_DATE( :date_of_birth,'YYYY-MM-DD'), weight= :weight, height= :height, age= :age WHERE id= :id`;
+   date_of_birth= TO_DATE( :date_of_birth,'YYYY-MM-DD'), weight= :weight, height= :height, age= :age, club_id= :club_id WHERE id= :id`;
 
   const data = {
     full_name,
@@ -132,6 +152,7 @@ export async function update(player: PlayerEntity, id: string): Promise<any> {
     height,
     age,
     id,
+    club_id,
   };
 
   const options = {

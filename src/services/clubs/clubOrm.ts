@@ -10,24 +10,47 @@ export async function find(search: string): Promise<any> {
   const newSearch = `%${search}%`;
   if (search !== 'default') {
     getClubs = await connection.execute(
-      'SELECT * FROM player WHERE full_name LIKE :newSearch',
+      'SELECT * FROM CLUB WHERE name LIKE :newSearch',
       { newSearch },
     );
   } else {
-    getClubs = await connection.execute('SELECT * FROM player');
+    getClubs = await connection.execute('SELECT * FROM CLUB');
   }
-  if (!getClubs) return { message: 'Players not found' };
+
+  if (!getClubs) return { message: 'Club not found' };
   const returnedClubs = [];
+
   for (let i = 0; i < getClubs.rows.length; i++) {
     const club = {};
+    let coach;
     for (let j = 0; j < getClubs.metaData.length; j++) {
+      if (getClubs.metaData[j].name == 'USER_ID') {
+        const val = getClubs.rows[i][j];
+        const getCoach = await connection.execute(
+          'SELECT * FROM USERCLUB WHERE ID= :val',
+          { val },
+          { outFormat: oracledb.OBJECT, autoCommit: true },
+        );
+        if (getCoach?.rows?.length !== 0) {
+          let key;
+          const keys = Object.keys(getCoach.rows[0]);
+          let n = keys.length;
+          coach = {};
+          while (n--) {
+            key = keys[n];
+            coach[key.toLowerCase()] = getCoach.rows[0][key];
+          }
+        } else {
+          coach = {};
+        }
+      }
       club[getClubs.metaData[j].name.toLowerCase()] = getClubs.rows[i][j];
     }
-    returnedClubs.push(club);
+    returnedClubs.push({ club, coach });
   }
   returnedClubs.sort((a, b) => {
-    const fa = a.full_name.toLowerCase(),
-      fb = b.full_name.toLowerCase();
+    const fa = a.club.name.toLowerCase(),
+      fb = b.club.name.toLowerCase();
 
     if (fa < fb) {
       return -1;
@@ -41,88 +64,45 @@ export async function find(search: string): Promise<any> {
   return returnedClubs;
 }
 
-export async function create(player: ClubEntity): Promise<any> {
-  const {
-    full_name,
-    rating,
-    salary,
-    position,
-    date_of_birth,
-    weight,
-    height,
-    age,
-  } = player;
-  const sql = `Insert INTO CLUB (id, full_name, rating, salary, position, date_of_birth, weight, height, age) VALUES( :id, :full_name, :rating, :salary, :position, TO_DATE( :date_of_birth,'YYYY-MM-DD'), :weight, :height, :age)`;
+export async function create(club: ClubEntity): Promise<any> {
+  const { name, description } = club;
+  const sql = `Insert INTO CLUB (id, name, description) VALUES( :id, :name, :description)`;
   const id = uuidv4();
 
   const data = {
     id,
-    full_name,
-    rating,
-    salary,
-    position,
-    date_of_birth,
-    weight,
-    height,
-    age,
+    name,
+    description,
   };
 
   const options = {
     autoCommit: true,
     bindDefs: {
-      id: { type: oracledb.STRING, maxSize: 60 },
-      full_name: { type: oracledb.STRING, maxSize: 60 },
-      age: { type: oracledb.NUMBER, maxSize: 40 },
-      date_of_birth: { type: oracledb.DATE },
-      height: { type: oracledb.NUMBER },
-      weight: { type: oracledb.NUMBER },
-      rating: { type: oracledb.NUMBER },
-      salary: { type: oracledb.NUMBER },
-      position: { type: oracledb.STRING, maxSize: 10 },
+      id: { type: oracledb.STRING, maxSize: 50 },
+      name: { type: oracledb.STRING, maxSize: 30 },
+      description: { type: oracledb.STRING, maxSize: 15 },
     },
   };
   const connection = await checkConnection();
   return await connection.execute(sql, data, options);
 }
 
-export async function update(player: ClubEntity, id: string): Promise<any> {
-  const {
-    full_name,
-    rating,
-    salary,
-    position,
-    date_of_birth,
-    weight,
-    height,
-    age,
-  } = player;
-
-  const sql = `UPDATE CLUB SET full_name= :full_name, rating= :rating, salary= :salary, position= :position,
-     date_of_birth= TO_DATE( :date_of_birth,'YYYY-MM-DD'), weight= :weight, height= :height, age= :age WHERE id= :id`;
+export async function update(club: ClubEntity, id: string): Promise<any> {
+  const { name, description } = club;
+  console.log(club);
+  const sql = `UPDATE CLUB SET name= :name, description= :description WHERE id= :id`;
 
   const data = {
-    full_name,
-    rating,
-    salary,
-    position,
-    date_of_birth,
-    weight,
-    height,
-    age,
+    name,
+    description,
     id,
   };
 
   const options = {
     autoCommit: true,
     bindDefs: {
-      full_name: { type: oracledb.STRING, maxSize: 60 },
-      age: { type: oracledb.NUMBER, maxSize: 40 },
-      date_of_birth: { type: oracledb.DATE },
-      height: { type: oracledb.NUMBER },
-      weight: { type: oracledb.NUMBER },
-      rating: { type: oracledb.NUMBER },
-      salary: { type: oracledb.NUMBER },
-      position: { type: oracledb.STRING, maxSize: 10 },
+      name: { type: oracledb.STRING, maxSize: 30 },
+      description: { type: oracledb.STRING, maxSize: 20 },
     },
   };
   const connection = await checkConnection();
@@ -139,4 +119,42 @@ export async function remove(id: string): Promise<string> {
     },
   };
   return await connection.execute(sql, { id }, options);
+}
+
+export async function findOne(id: string): Promise<any> {
+  const connection = await checkConnection();
+  const getClub = await connection.execute('SELECT * FROM CLUB WHERE id= :id', {
+    id,
+  });
+  console.log(getClub);
+  if (!getClub) return { message: 'Club not found' };
+  const club = {};
+  let coach;
+  if (getClub && getClub?.rows) {
+    for (let i = 0; i < getClub.metaData.length; i++) {
+      if (getClub.metaData[i].name == 'USER_ID') {
+        const val = getClub.rows[0][i];
+        console.log(val);
+        const getCoach = await connection.execute(
+          'SELECT * FROM USERCLUB WHERE ID= :val',
+          { val },
+          { outFormat: oracledb.OBJECT, autoCommit: true },
+        );
+        if (getCoach?.rows?.length !== 0) {
+          let key;
+          const keys = Object.keys(getCoach.rows[0]);
+          let n = keys.length;
+          coach = {};
+          while (n--) {
+            key = keys[n];
+            coach[key.toLowerCase()] = getCoach.rows[0][key];
+          }
+        } else {
+          coach = {};
+        }
+      }
+      club[getClub.metaData[i].name.toLowerCase()] = getClub.rows[0][i];
+    }
+  }
+  return { club, coach };
 }

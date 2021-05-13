@@ -21,6 +21,7 @@ export async function findOne(id: string): Promise<any> {
     'SELECT * FROM userclub WHERE id= :id',
     { id },
   );
+
   return existUser;
 }
 

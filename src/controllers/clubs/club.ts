@@ -7,18 +7,19 @@ import {
   Post,
   Put,
   Query,
+  Param,
 } from '@nestjs/common';
 import { ClubService } from 'src/services/clubs/club.service';
 
-@Controller('players')
+@Controller('clubs')
 export class CLubController {
   constructor(private clubService: ClubService) {}
 
-  //   @Get('club')
-  //   async getClub(@Query() data): Promise<string> {
-  //     const { id } = data;
-  //     return await this.clubService.getClub(id);
-  //   }
+  @Get('club/:id')
+  async getClub(@Param() params): Promise<string> {
+    const { id } = params;
+    return await this.clubService.getClub(id);
+  }
 
   @Get('')
   async getClubs(@Query() data): Promise<string> {

@@ -22,8 +22,16 @@ export class PlayerController {
 
   @Get('')
   async getPlayers(@Query() data): Promise<string> {
-    const { page, limit, search } = data;
-    return await this.playerService.getPlayers(page, limit, search);
+    console.log(data);
+    const { page, limit, search, clubId, isFrom } = data;
+    console.log('AICI', clubId, isFrom);
+    return await this.playerService.getPlayers(
+      page,
+      limit,
+      search,
+      clubId,
+      isFrom,
+    );
   }
 
   @Post('createPlayer')

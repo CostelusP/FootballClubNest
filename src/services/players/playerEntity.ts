@@ -8,4 +8,5 @@ export class PlayerEntity {
   height: number;
   weight: number;
   salary: number;
+  club_id: string;
 }
