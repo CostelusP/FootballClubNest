@@ -2,6 +2,7 @@ import * as oracledb from 'oracledb';
 import { checkConnection } from 'src/utils/connections';
 import { v4 as uuidv4 } from 'uuid';
 import { PlayerEntity } from './playerEntity';
+import { findClubByUserId } from '../clubs/clubOrm';
 
 export async function findOne(id: string): Promise<any> {
   const connection = await checkConnection();
@@ -26,6 +27,8 @@ export async function find(
   search: string,
   id,
   isFrom,
+  role,
+  userId,
 ): Promise<any> {
   const connection = await checkConnection();
   let getPlayers;
@@ -39,18 +42,34 @@ export async function find(
       );
     } else {
       getPlayers = await connection.execute(
-        'SELECT * FROM player WHERE CLUB_ID= :id',
+        'SELECT * FROM player WHERE club_id= :id',
         { id },
       );
     }
   } else {
-    if (search !== 'default') {
-      getPlayers = await connection.execute(
-        'SELECT * FROM player WHERE full_name LIKE :newSearch',
-        { newSearch },
-      );
+    if (role === 'Coach') {
+      const getClub = await findClubByUserId(userId);
+      const idClub = getClub.id;
+      if (search !== 'default') {
+        getPlayers = await connection.execute(
+          'SELECT * FROM player WHERE full_name LIKE :newSearch AND club_id= :idClub',
+          { newSearch, idClub },
+        );
+      } else {
+        getPlayers = await connection.execute(
+          'SELECT * FROM player WHERE club_id= :idClub',
+          { idClub },
+        );
+      }
     } else {
-      getPlayers = await connection.execute('SELECT * FROM player');
+      if (search !== 'default') {
+        getPlayers = await connection.execute(
+          'SELECT * FROM player WHERE full_name LIKE :newSearch',
+          { newSearch },
+        );
+      } else {
+        getPlayers = await connection.execute('SELECT * FROM player');
+      }
     }
   }
   if (!getPlayers) return { message: 'Players not found' };
@@ -182,4 +201,37 @@ export async function remove(id: string): Promise<string> {
     },
   };
   return await connection.execute(sql, { id }, options);
+}
+
+export async function getByClubId(clubId: string): Promise<any> {
+  const connection = await checkConnection();
+  console.log(clubId);
+  const getPlayers = await connection.execute(
+    'SELECT * FROM PLAYER WHERE club_id= :clubId',
+    { clubId },
+  );
+
+  if (!getPlayers) return { message: 'Players not found' };
+  const returnedPlayers = [];
+  for (let i = 0; i < getPlayers.rows.length; i++) {
+    const player = {};
+    for (let j = 0; j < getPlayers.metaData.length; j++) {
+      player[getPlayers.metaData[j].name.toLowerCase()] = getPlayers.rows[i][j];
+    }
+    returnedPlayers.push(player);
+  }
+  returnedPlayers.sort((a, b) => {
+    const fa = a.full_name.toLowerCase(),
+      fb = b.full_name.toLowerCase();
+
+    if (fa < fb) {
+      return -1;
+    }
+    if (fa > fb) {
+      return 1;
+    }
+    return 0;
+  });
+
+  return returnedPlayers;
 }

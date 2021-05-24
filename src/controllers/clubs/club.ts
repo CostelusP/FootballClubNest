@@ -46,4 +46,10 @@ export class CLubController {
     const { id } = data;
     return await this.clubService.delete(id);
   }
+
+  @Get('getClubByUser')
+  async getClubByUserId(@Query() data): Promise<string> {
+    const { id } = data;
+    return await this.clubService.getClubByUserId(id);
+  }
 }

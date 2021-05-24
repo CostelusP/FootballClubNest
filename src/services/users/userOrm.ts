@@ -57,31 +57,48 @@ export async function find(
 ): Promise<any> {
   const connection = await checkConnection();
   const is_admin = 'F';
-  let getUser;
+  let getUsers;
   const newSearch = `%${search}%`;
   if (search !== '') {
-    getUser = await connection.execute(
+    getUsers = await connection.execute(
       'SELECT user_name, is_admin, id, email_address FROM userclub WHERE user_name LIKE :newSearch AND is_admin= :is_admin',
       { newSearch, is_admin },
     );
   } else {
-    getUser = await connection.execute(
+    getUsers = await connection.execute(
       'SELECT user_name, is_admin,id, email_address FROM userclub WHERE is_admin= :is_admin',
       { is_admin },
     );
   }
 
   const returnedUsers = [];
-  for (let i = 0; i < getUser.rows.length; i++) {
-    const users = {};
-    for (let j = 0; j < getUser.metaData.length; j++) {
-      users[getUser.metaData[j].name.toLowerCase()] = getUser.rows[i][j];
+  for (let i = 0; i < getUsers.rows.length; i++) {
+    const user = {};
+    for (let j = 0; j < getUsers.metaData.length; j++) {
+      user[getUsers.metaData[j].name.toLowerCase()] = getUsers.rows[i][j];
     }
-    returnedUsers.push(users);
+    const id_user = getUsers.rows[i][2];
+    const getClub = await connection.execute(
+      'SELECT * FROM CLUB WHERE user_id= :id_user',
+      { id_user },
+      { outFormat: oracledb.OBJECT, autoCommit: true },
+    );
+    const club = {};
+    if (getClub?.rows?.length !== 0) {
+      let key;
+      const keys = Object.keys(getClub.rows[0]);
+      let n = keys.length;
+      while (n--) {
+        key = keys[n];
+        club[key.toLowerCase()] = getClub.rows[0][key];
+      }
+    }
+    returnedUsers.push({ coach: user, club });
   }
+
   returnedUsers.sort((a, b) => {
-    const fa = a.user_name.toLowerCase(),
-      fb = b.user_name.toLowerCase();
+    const fa = a.coach.user_name.toLowerCase(),
+      fb = b.coach.user_name.toLowerCase();
 
     if (fa < fb) {
       return -1;
@@ -97,8 +114,15 @@ export async function find(
   return { coaches, page_number };
 }
 
-export async function remove(id: string): Promise<string> {
+export async function remove(id: string): Promise<string | any> {
   const connection = await checkConnection();
+  const getClub = await connection.execute(
+    'SELECT * FROM CLUB WHERE user_id= :id',
+    { id },
+    { outFormat: oracledb.OBJECT, autoCommit: true },
+  );
+  if (getClub?.rows?.length !== 0)
+    return { message: 'Should remove the club first' };
   const sql = 'Delete FROM userclub WHERE id= :id';
   const options = {
     autoCommit: true,
@@ -147,4 +171,19 @@ export async function update(user: any, id: string): Promise<string> {
   }
   connection.close();
   return updatedUser;
+}
+
+export async function getAllCoaches() {
+  const connection = await checkConnection();
+  const is_admin = 'F';
+  const getUsers = await connection.execute(
+    'SELECT * FROM USERCLUB WHERE is_admin= :is_admin AND ID NOT IN(SELECT user_id from CLUB where user_id IS NOT NULL)',
+    { is_admin },
+    {
+      outFormat: oracledb.OBJECT,
+      autoCommit: true,
+    },
+  );
+  if (getUsers?.rows) return getUsers.rows;
+  else return { message: 'Error on getting coaches' };
 }

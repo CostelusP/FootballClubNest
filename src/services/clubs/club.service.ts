@@ -2,7 +2,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ClubEntity } from './clubEntity';
 // import { PlayerEntity } from './playerEntity';
-import { find, create, update, remove, findOne } from './clubOrm';
+import {
+  find,
+  create,
+  update,
+  remove,
+  findOne,
+  findClubByUserId,
+} from './clubOrm';
 
 @Injectable()
 export class ClubService {
@@ -26,10 +33,10 @@ export class ClubService {
 
   async create(clubData: ClubEntity): Promise<any> {
     const { name, description } = clubData;
-    if (name || !description) {
+    if (!name || !description) {
       throw new HttpException(
         'Invalid credentials for the club',
-        HttpStatus.PARTIAL_CONTENT,
+        HttpStatus.BAD_REQUEST,
       );
     }
     const clubCreated = await create(clubData);
@@ -65,5 +72,13 @@ export class ClubService {
       );
     }
     return { message: 'Deleted' };
+  }
+
+  async getClubByUserId(id: string): Promise<any> {
+    const club = await findClubByUserId(id);
+    if (club && 'message' in club) {
+      throw new HttpException(club.message, HttpStatus.BAD_REQUEST);
+    }
+    return club;
   }
 }

@@ -22,15 +22,15 @@ export class PlayerController {
 
   @Get('')
   async getPlayers(@Query() data): Promise<string> {
-    console.log(data);
-    const { page, limit, search, clubId, isFrom } = data;
-    console.log('AICI', clubId, isFrom);
+    const { page, limit, search, clubId, isFrom, role, userId } = data;
     return await this.playerService.getPlayers(
       page,
       limit,
       search,
       clubId,
       isFrom,
+      role,
+      userId,
     );
   }
 
@@ -52,5 +52,11 @@ export class PlayerController {
   async deleteCoach(@Query() data): Promise<any> {
     const { id } = data;
     return await this.playerService.delete(id);
+  }
+
+  @Get('playersByClubId')
+  async getPlayersByClubId(@Query() data): Promise<string> {
+    const { clubId } = data;
+    return await this.playerService.getPlayersByClubId(clubId);
   }
 }

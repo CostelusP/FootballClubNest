@@ -9,6 +9,8 @@ import { PlayerController } from './controllers/player/player';
 import { PlayerService } from './services/players/player.service';
 import { CLubController } from './controllers/clubs/club';
 import { ClubService } from './services/clubs/club.service';
+import { EventController } from './controllers/event/event';
+import { EventService } from './services/events/event.service';
 
 @Module({
   imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true })],
@@ -17,7 +19,14 @@ import { ClubService } from './services/clubs/club.service';
     UserController,
     PlayerController,
     CLubController,
+    EventController,
   ],
-  providers: [AppService, UserService, PlayerService, ClubService],
+  providers: [
+    AppService,
+    UserService,
+    PlayerService,
+    ClubService,
+    EventService,
+  ],
 })
 export class AppModule {}

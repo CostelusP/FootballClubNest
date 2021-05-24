@@ -41,6 +41,7 @@ export class UserController {
     const { page, limit, search } = data;
     return await this.userService.getCoaches(page, limit, search);
   }
+
   @Delete('coach')
   @HttpCode(200)
   async deleteCoach(@Query() data): Promise<any> {
@@ -53,5 +54,11 @@ export class UserController {
   async updateUser(@Body() data, @Query() userId): Promise<any> {
     const { id } = userId;
     return this.userService.update(data, id);
+  }
+
+  @Get('getCoaches')
+  @HttpCode(200)
+  async getCoachesForClub(): Promise<string> {
+    return await this.userService.getCoachesForClub();
   }
 }

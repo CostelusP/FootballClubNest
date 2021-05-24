@@ -2,7 +2,14 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateUserDto, LoginUserDto } from './userDto';
 import { UserEntity } from './userEntity';
-import { findByEmail, create, find, remove, update } from './userOrm';
+import {
+  findByEmail,
+  create,
+  find,
+  remove,
+  update,
+  getAllCoaches,
+} from './userOrm';
 
 @Injectable()
 export class UserService {
@@ -104,6 +111,9 @@ export class UserService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+    if (userDeleted && 'message' in userDeleted) {
+      throw new HttpException(userDeleted.message, HttpStatus.BAD_REQUEST);
+    }
     return { message: 'Deleted' };
   }
 
@@ -136,7 +146,16 @@ export class UserService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-
     return { message: 'User updated' };
+  }
+
+  async getCoachesForClub(): Promise<any> {
+    const getCoaches = await getAllCoaches();
+    if (!getCoaches && 'message' in getCoaches)
+      throw new HttpException(
+        getCoaches.message,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    return getCoaches;
   }
 }

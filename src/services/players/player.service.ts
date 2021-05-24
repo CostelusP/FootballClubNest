@@ -1,7 +1,14 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PlayerEntity } from './playerEntity';
-import { find, findOne, create, update, remove } from './playerOrm';
+import {
+  find,
+  findOne,
+  create,
+  update,
+  remove,
+  getByClubId,
+} from './playerOrm';
 
 @Injectable()
 export class PlayerService {
@@ -20,8 +27,10 @@ export class PlayerService {
     page: number,
     limit: number,
     search: string,
-    id,
-    isFrom,
+    id: any,
+    isFrom: any,
+    role: string,
+    userId: string,
   ): Promise<any> {
     const offset = (page - 1) * limit;
     const { players, page_number } = await find(
@@ -30,6 +39,8 @@ export class PlayerService {
       search,
       id,
       isFrom,
+      role,
+      userId,
     );
     if (players && 'message' in players) {
       throw new HttpException(players.message, HttpStatus.BAD_REQUEST);
@@ -96,5 +107,17 @@ export class PlayerService {
       );
     }
     return { message: 'Deleted' };
+  }
+
+  async getPlayersByClubId(clubId: string): Promise<any> {
+    if (!clubId) {
+      throw new HttpException('Invalid clubId', HttpStatus.BAD_REQUEST);
+    }
+
+    const players = await getByClubId(clubId);
+    if (players && 'message' in players) {
+      throw new HttpException(players.message, HttpStatus.BAD_REQUEST);
+    }
+    return players;
   }
 }

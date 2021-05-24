@@ -1,6 +1,7 @@
 import * as oracledb from 'oracledb';
 import { checkConnection } from 'src/utils/connections';
 import { v4 as uuidv4 } from 'uuid';
+import { getByClubId } from '../players/playerOrm';
 import { ClubEntity } from './clubEntity';
 
 export async function find(search: string): Promise<any> {
@@ -21,7 +22,7 @@ export async function find(search: string): Promise<any> {
   const returnedClubs = [];
 
   for (let i = 0; i < getClubs.rows.length; i++) {
-    const club = {};
+    const club = { id: '', name: '', description: '', user_id: '' };
     let coach;
     for (let j = 0; j < getClubs.metaData.length; j++) {
       if (getClubs.metaData[j].name == 'USER_ID') {
@@ -46,7 +47,8 @@ export async function find(search: string): Promise<any> {
       }
       club[getClubs.metaData[j].name.toLowerCase()] = getClubs.rows[i][j];
     }
-    returnedClubs.push({ club, coach });
+    const players = await getByClubId(club.id);
+    returnedClubs.push({ club, coach, players });
   }
   returnedClubs.sort((a, b) => {
     const fa = a.club.name.toLowerCase(),
@@ -65,14 +67,16 @@ export async function find(search: string): Promise<any> {
 }
 
 export async function create(club: ClubEntity): Promise<any> {
-  const { name, description } = club;
-  const sql = `Insert INTO CLUB (id, name, description) VALUES( :id, :name, :description)`;
+  const { name, description, user_id } = club;
+
+  const sql = `Insert INTO CLUB (id, name, description,user_id) VALUES( :id, :name, :description, :user_id)`;
   const id = uuidv4();
 
   const data = {
     id,
     name,
     description,
+    user_id,
   };
 
   const options = {
@@ -88,14 +92,15 @@ export async function create(club: ClubEntity): Promise<any> {
 }
 
 export async function update(club: ClubEntity, id: string): Promise<any> {
-  const { name, description } = club;
+  const { name, description, user_id } = club;
   console.log(club);
-  const sql = `UPDATE CLUB SET name= :name, description= :description WHERE id= :id`;
+  const sql = `UPDATE CLUB SET name= :name, description= :description, user_id= :user_id WHERE id= :id`;
 
   const data = {
     name,
     description,
     id,
+    user_id,
   };
 
   const options = {
@@ -134,7 +139,6 @@ export async function findOne(id: string): Promise<any> {
     for (let i = 0; i < getClub.metaData.length; i++) {
       if (getClub.metaData[i].name == 'USER_ID') {
         const val = getClub.rows[0][i];
-        console.log(val);
         const getCoach = await connection.execute(
           'SELECT * FROM USERCLUB WHERE ID= :val',
           { val },
@@ -157,4 +161,26 @@ export async function findOne(id: string): Promise<any> {
     }
   }
   return { club, coach };
+}
+
+export async function findClubByUserId(id: string): Promise<any> {
+  if (!id) return { message: 'Invalid id' };
+  const connection = await checkConnection();
+  const getClub = await connection.execute(
+    'SELECT * FROM club WHERE user_id= :id',
+    { id },
+    { outFormat: oracledb.OBJECT, autoCommit: true },
+  );
+  const club = {};
+  if (getClub?.rows?.length !== 0) {
+    let key;
+    const keys = Object.keys(getClub.rows[0]);
+    let n = keys.length;
+    while (n--) {
+      key = keys[n];
+      club[key.toLowerCase()] = getClub.rows[0][key];
+    }
+  }
+
+  return club;
 }
