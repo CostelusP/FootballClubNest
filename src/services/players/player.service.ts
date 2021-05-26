@@ -8,6 +8,7 @@ import {
   update,
   remove,
   getByClubId,
+  getNoPlayersByClubId,
 } from './playerOrm';
 
 @Injectable()
@@ -113,8 +114,7 @@ export class PlayerService {
     if (!clubId) {
       throw new HttpException('Invalid clubId', HttpStatus.BAD_REQUEST);
     }
-
-    const players = await getByClubId(clubId);
+    const players = await getNoPlayersByClubId(clubId);
     if (players && 'message' in players) {
       throw new HttpException(players.message, HttpStatus.BAD_REQUEST);
     }

@@ -93,7 +93,6 @@ export async function create(club: ClubEntity): Promise<any> {
 
 export async function update(club: ClubEntity, id: string): Promise<any> {
   const { name, description, user_id } = club;
-  console.log(club);
   const sql = `UPDATE CLUB SET name= :name, description= :description, user_id= :user_id WHERE id= :id`;
 
   const data = {
@@ -131,7 +130,6 @@ export async function findOne(id: string): Promise<any> {
   const getClub = await connection.execute('SELECT * FROM CLUB WHERE id= :id', {
     id,
   });
-  console.log(getClub);
   if (!getClub) return { message: 'Club not found' };
   const club = {};
   let coach;

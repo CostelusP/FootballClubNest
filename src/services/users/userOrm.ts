@@ -177,7 +177,7 @@ export async function getAllCoaches() {
   const connection = await checkConnection();
   const is_admin = 'F';
   const getUsers = await connection.execute(
-    'SELECT * FROM USERCLUB WHERE is_admin= :is_admin AND ID NOT IN(SELECT user_id from CLUB where user_id IS NOT NULL)',
+    'SELECT * FROM USERCLUB WHERE is_admin= :is_admin',
     { is_admin },
     {
       outFormat: oracledb.OBJECT,

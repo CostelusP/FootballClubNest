@@ -235,3 +235,16 @@ export async function getByClubId(clubId: string): Promise<any> {
 
   return returnedPlayers;
 }
+
+export async function getNoPlayersByClubId(clubId: string): Promise<any> {
+  const connection = await checkConnection();
+  console.log(clubId);
+  const getPlayers = await connection.execute(
+    'SELECT COUNT(PLAYER.ID), CLUB.ID FROM PLAYER,CLUB WHERE PLAYER.club_id= CLUB.id GROUP BY CLUB.ID',
+  );
+  console.log(getPlayers);
+
+  if (!getPlayers) return { message: 'Players not found' };
+
+  return getPlayers.rows;
+}

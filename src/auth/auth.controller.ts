@@ -10,7 +10,7 @@ export class AuthController {
 
   @Get()
   async getUser(): Promise<string> {
-    return await this.userService.findOne('aaa');
+    return await this.userService.findOne('');
   }
 
   @Post('createUser')
