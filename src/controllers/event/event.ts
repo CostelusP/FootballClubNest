@@ -24,7 +24,6 @@ export class EventController {
   @Get('')
   async getEvents(@Query() data): Promise<string> {
     const { page, limit, search, time } = data;
-    console.log(time);
     return await this.eventService.getEvents(page, limit, search, time);
   }
 
@@ -37,7 +36,6 @@ export class EventController {
   @Put('editEvent')
   @HttpCode(200)
   async updateEvent(@Body() data, @Query() eventId): Promise<any> {
-    console.log(eventId);
     const { id } = eventId;
     return this.eventService.update(data, id);
   }
