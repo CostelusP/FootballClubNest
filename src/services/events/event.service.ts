@@ -2,8 +2,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { EventEntity } from './eventEntity';
 import { create, find, remove, update } from './eventOrm';
-// import { PlayerEntity } from './playerEntity';
-// import { find, findOne, create, update, remove } from './playerOrm';
 
 @Injectable()
 export class EventService {
